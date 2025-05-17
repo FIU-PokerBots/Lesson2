@@ -29,47 +29,68 @@ class Player(Bot):
         pass
 
 
-    def calc_strength(self, hole, iterations):
+    def calc_strength(self, hole_str_list, board_str_list, iterations):
         '''
-        
-        
+        Monte Carlo simulation to estimate hand strength.
+        Args:
+            hole_str_list: List of two card strings for the player's hole cards (e.g., ['As', 'Kd'])
+            board_str_list: List of card strings for cards already on the board (e.g., ['Ks', 'Qh', 'Jd'])
+            iterations: Number of simulations to run
+        Returns:
+            Estimated hand strength (0 to 1)
         '''
 
         deck = eval7.Deck()
-        hole_card = [eval7.Card(card) for card in hole]
+        hole_cards = [eval7.Card(card_str) for card_str in hole_str_list]
+        board_cards = [eval7.Card(card_str) for card_str in board_str_list]
 
-        for card in hole_card:
-            deck.cards.remove(card)
+        # Remove known cards (player's hole cards and current board cards) from the deck
+        for card in hole_cards:
+            if card in deck.cards:
+                deck.cards.remove(card)
+        for card in board_cards:
+            if card in deck.cards:
+                deck.cards.remove(card)
 
         score = 0
+        num_opponent_hole_cards = 2
+        num_community_cards_to_deal = 5 - len(board_cards)
+
+        if iterations == 0: # Prevent division by zero later
+            return 0
 
         for _ in range(iterations):
             deck.shuffle()
 
-            _COMM = 5
-            _OPP = 2
+            # Determine how many cards to draw for opponent and remaining community
+            cards_to_draw_count = num_opponent_hole_cards + num_community_cards_to_deal
 
-            draw = deck.peek(_COMM + _OPP)
+            drawn_cards = deck.peek(cards_to_draw_count)
 
-            opp_hole = draw[:_OPP]
-            community = draw[_OPP:]
+            opp_hole_sim = drawn_cards[:num_opponent_hole_cards]
+            
+            # Simulated community cards are only those not already on the board
+            simulated_community_cards = []
+            if num_community_cards_to_deal > 0:
+                simulated_community_cards = drawn_cards[num_opponent_hole_cards : num_opponent_hole_cards + num_community_cards_to_deal]
 
-            our_hand = hole_card +  community
-            opp_hand = opp_hole +  community
+            # Full community board for this simulation run
+            current_full_community = board_cards + simulated_community_cards
+
+            our_hand = hole_cards + current_full_community
+            opp_hand = opp_hole_sim + current_full_community
 
             our_value = eval7.evaluate(our_hand)
             opp_value = eval7.evaluate(opp_hand)
 
             if our_value > opp_value:
                 score += 2
-            
             elif our_value == opp_value:
                 score += 1
+            # else: score += 0 (no change)
 
-            else:
-                score += 0
-
-        hand_strength = score / (2 * iterations)
+        # hand_strength is the average score from simulations, normalized (max score is 2*iterations)
+        hand_strength = score / (2 * iterations) if iterations > 0 else 0
 
         return hand_strength
 
@@ -170,7 +191,7 @@ class Player(Bot):
 
 
         MONTE_CARLO_ITERS = 100
-        strength = self.calc_strength(my_cards, MONTE_CARLO_ITERS)
+        strength = self.calc_strength(my_cards, board_cards, MONTE_CARLO_ITERS)
 
 
         if continue_cost > 0:
