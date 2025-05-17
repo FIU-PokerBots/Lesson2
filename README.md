@@ -1,6 +1,5 @@
-# Pokerbot Project
-
-This repo provides a pokerbot which utilitizes Monte-Carlo Simulation (`player2_monte_carlo`).
+# FIU PokerBots 2025 🃏
+## Lesson 2 - Probability Fundamentals
 
 ## Setup and Installation
 
