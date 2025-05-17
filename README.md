@@ -21,7 +21,7 @@ python3 test_engine.py
 Please be aware that the **final tournament will use the following game configuration**: 
 
 *   `NUM_ROUNDS = 1000`
-*   `STARTING_STACK = 400`
+*   `STARTING_STACK = 400` (resets back to 400 each game round)
 *   `BIG_BLIND = 2`
 *   `SMALL_BLIND = 1`
 *   `STARTING_GAME_CLOCK = 10000.0` seconds (per bot for the entire match)
